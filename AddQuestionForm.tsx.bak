@@ -1,0 +1,420 @@
+'use client';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Question, QuestionType } from '../../types';
+
+interface AddQuestionFormProps {
+  onAddQuestion: (question: Question) => void;
+  onCancel: () => void;
+}
+
+export default function AddQuestionForm({ onAddQuestion, onCancel }: AddQuestionFormProps) {
+  const [questionText, setQuestion      <div className="flex justify-end space-x-3 mt-6">
+        <motion.button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 bg-white border border-gray-300 text-black rounded-md text-sm hover:bg-gray-50 flex items-center"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          Cancel
+        </motion.button>
+        <motion.button
+          type="submit"
+          className="px-4 py-2 bg-red-600 text-white rounded-md text-sm hover:bg-red-700 shadow-sm flex items-center"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+          Add Question
+        </motion.button>
+      </div>
+    </motion.form>('');
+  const [questionType, setQuestionType] = useState<QuestionType>('mcq');
+  const [options, setOptions] = useState(['', '', '', '']);
+  const [marks, setMarks] = useState<number | undefined>(undefined);
+  const [columnA, setColumnA] = useState(['', '', '', '']);
+  const [columnB, setColumnB] = useState(['', '', '', '']);
+  const [trueOrFalse, setTrueOrFalse] = useState<boolean | undefined>(undefined);
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!questionText.trim()) return;
+    
+    let newQuestion: Question;
+    
+    switch (questionType) {
+      case 'mcq':
+        // Filter out empty options
+        const validOptions = options.filter(opt => opt.trim() !== '');
+        if (validOptions.length < 2) {
+          alert('Please add at least 2 options for MCQ');
+          return;
+        }
+        
+        newQuestion = {
+          id: `question-${Date.now()}`,
+          type: 'mcq',
+          question: questionText.trim(),
+          options: validOptions,
+          marks,
+        };
+        break;
+        
+      case 'fill':
+        if (!questionText.includes('_')) {
+          alert('For fill in the blanks questions, use underscore (_) to indicate blank spaces');
+          return;
+        }
+        
+        newQuestion = {
+          id: `question-${Date.now()}`,
+          type: 'fill',
+          question: questionText.trim(),
+          marks,
+        };
+        break;
+        
+      case 'match':
+        // Filter out empty items from columnA and columnB
+        const validColumnA = columnA.filter(item => item.trim() !== '');
+        const validColumnB = columnB.filter(item => item.trim() !== '');
+        
+        if (validColumnA.length < 2 || validColumnB.length < 2) {
+          alert('Please add at least 2 items for both columns');
+          return;
+        }
+        
+        newQuestion = {
+          id: `question-${Date.now()}`,
+          type: 'match',
+          question: questionText.trim(),
+          columnA: validColumnA,
+          columnB: validColumnB,
+          marks,
+        };
+        break;
+        
+      case 'true_false':
+        if (trueOrFalse === undefined) {
+          alert('Please select either True or False');
+          return;
+        }
+        
+        newQuestion = {
+          id: `question-${Date.now()}`,
+          type: 'true_false',
+          question: questionText.trim(),
+          answer: trueOrFalse,
+          marks,
+        };
+        break;
+        
+      case 'short':
+        newQuestion = {
+          id: `question-${Date.now()}`,
+          type: 'short',
+          question: questionText.trim(),
+          marks,
+        };
+        break;
+        
+      case 'long':
+        newQuestion = {
+          id: `question-${Date.now()}`,
+          type: 'long',
+          question: questionText.trim(),
+          marks,
+        };
+        break;
+        
+      default:
+        return;
+    }
+    
+    onAddQuestion(newQuestion);
+    
+    // Reset form
+    setQuestionText('');
+    setQuestionType('mcq');
+    setOptions(['', '', '', '']);
+    setColumnA(['', '', '', '']);
+    setColumnB(['', '', '', '']);
+    setTrueOrFalse(undefined);
+    setMarks(undefined);
+  };
+  
+  const handleOptionChange = (index: number, value: string) => {
+    const newOptions = [...options];
+    newOptions[index] = value;
+    setOptions(newOptions);
+  };
+  
+  const handleColumnAChange = (index: number, value: string) => {
+    const newColumnA = [...columnA];
+    newColumnA[index] = value;
+    setColumnA(newColumnA);
+  };
+  
+  const handleColumnBChange = (index: number, value: string) => {
+    const newColumnB = [...columnB];
+    newColumnB[index] = value;
+    setColumnB(newColumnB);
+  };
+
+  // List of question types with icons
+  const questionTypes = [
+    { 
+      value: 'mcq', 
+      label: 'Multiple Choice',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      )
+    },
+    { 
+      value: 'fill', 
+      label: 'Fill in the Blanks',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+        </svg>
+      )
+    },
+    { 
+      value: 'short', 
+      label: 'Short Answer',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h8m-8 6h16" />
+        </svg>
+      )
+    },
+    { 
+      value: 'long', 
+      label: 'Long Answer',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+        </svg>
+      )
+    },
+    { 
+      value: 'match', 
+      label: 'Match the Following',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+        </svg>
+      )
+    },
+    { 
+      value: 'true_false', 
+      label: 'True/False',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+        </svg>
+      )
+    }
+  ];
+
+  return (
+    <motion.form 
+      onSubmit={handleSubmit} 
+      className="border border-gray-200 rounded-lg p-5 bg-white shadow-md"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="mb-4">
+        <label className="flex items-center text-sm font-medium text-black mb-2">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Question Type
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {questionTypes.map((type) => (
+            <motion.button
+              key={type.value}
+              type="button"
+              className={`px-3 py-1.5 rounded-md text-sm flex items-center ${
+                questionType === type.value
+                  ? 'bg-red-600 text-white shadow-sm'
+                  : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+              }`}
+              onClick={() => setQuestionType(type.value as QuestionType)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+            >
+              {type.icon}
+              <span className="ml-1">{type.label}</span>
+            </motion.button>
+          ))}
+        </div>
+      </div>
+      
+      <div className="mb-4">
+        <label htmlFor="question-text" className="block text-sm font-medium text-black mb-1">
+          Question Text
+        </label>
+        <textarea
+          id="question-text"
+          value={questionText}
+          onChange={(e) => setQuestionText(e.target.value)}
+          placeholder={questionType === 'fill' ? "Enter question with _ for blanks" : "Enter question text"}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+          rows={3}
+          required
+        />
+        {questionType === 'fill' && (
+          <p className="text-xs text-black mt-1">
+            Use underscore (_) to indicate blank spaces.
+          </p>
+        )}
+      </div>
+      
+      {questionType === 'mcq' && (
+        <div className="mb-4 space-y-2">
+          <label className="block text-sm font-medium text-black">
+            Options
+          </label>
+          {options.map((option, index) => (
+            <div key={index} className="flex items-center">
+              <span className="mr-2 text-sm font-medium text-black">
+                {String.fromCharCode(65 + index)}.
+              </span>
+              <input
+                type="text"
+                value={option}
+                onChange={(e) => handleOptionChange(index, e.target.value)}
+                placeholder={`Option ${String.fromCharCode(65 + index)}`}
+                className="w-full px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+              />
+            </div>
+          ))}
+        </div>
+      )}
+      
+      {questionType === 'match' && (
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-black mb-2">
+            Match the Following
+          </label>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm font-medium mb-1 text-black">Column A</p>
+              {columnA.map((item, index) => (
+                <div key={`colA-${index}`} className="mb-2">
+                  <div className="flex items-center">
+                    <span className="mr-2 text-sm font-medium text-black">
+                      {index + 1}.
+                    </span>
+                    <input
+                      type="text"
+                      value={item}
+                      onChange={(e) => handleColumnAChange(index, e.target.value)}
+                      placeholder={`Item ${index + 1}`}
+                      className="w-full px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div>
+              <p className="text-sm font-medium mb-1 text-black">Column B</p>
+              {columnB.map((item, index) => (
+                <div key={`colB-${index}`} className="mb-2">
+                  <div className="flex items-center">
+                    <span className="mr-2 text-sm font-medium text-black">
+                      {String.fromCharCode(97 + index)}.
+                    </span>
+                    <input
+                      type="text"
+                      value={item}
+                      onChange={(e) => handleColumnBChange(index, e.target.value)}
+                      placeholder={`Item ${String.fromCharCode(97 + index)}`}
+                      className="w-full px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {questionType === 'true_false' && (
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-black mb-2">
+            Correct Answer
+          </label>
+          <div className="flex space-x-4">
+            <button
+              type="button"
+              onClick={() => setTrueOrFalse(true)}
+              className={`px-4 py-2 rounded ${
+                trueOrFalse === true
+                  ? 'bg-green-600 text-black'
+                  : 'bg-gray-200 text-black'
+              }`}
+            >
+              True
+            </button>
+            <button
+              type="button"
+              onClick={() => setTrueOrFalse(false)}
+              className={`px-4 py-2 rounded ${
+                trueOrFalse === false
+                  ? 'bg-red-600 text-black'
+                  : 'bg-gray-200 text-black'
+              }`}
+            >
+              False
+            </button>
+          </div>
+        </div>
+      )}
+      
+      <div className="mb-4">
+        <label htmlFor="question-marks" className="block text-sm font-medium text-black mb-1">
+          Marks (Optional)
+        </label>
+        <input
+          id="question-marks"
+          type="number"
+          value={marks || ''}
+          onChange={(e) => setMarks(e.target.value ? parseInt(e.target.value) : undefined)}
+          placeholder="e.g. 5"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+          min="0"
+        />
+      </div>
+      
+      <div className="flex justify-end space-x-3">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 border border-gray-300 rounded-md text-sm text-black hover:bg-gray-50"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-600 text-black rounded-md text-sm hover:bg-blue-700 transition-colors"
+        >
+          Add Question
+        </button>
+      </div>
+    </form>
+  );
+}
